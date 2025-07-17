@@ -62,6 +62,7 @@
     </div>
 
     <script>
+      // Google Sign-In Setup
       window.onload = () => {
         google.accounts.id.initialize({
           client_id:
@@ -70,19 +71,60 @@
         });
       };
 
+      // Trigger Google Sign-In prompt
       function googleLogin() {
         google.accounts.id.disableAutoSelect();
         google.accounts.id.prompt((notification) => {
-          if (notification.isNotDisplayed()) {
+          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
             alert("Google login prompt was blocked or skipped.");
           }
         });
       }
 
+      // Handle Google login response
       function handleCredentialResponse(response) {
-        console.log("Google JWT ID token:", response.credential);
-        window.location.href = "dashboard.html";
+        const token = response.credential;
+        localStorage.setItem("google_token", token);
+        window.location.href = "welcome.html";
       }
+
+      // Handle manual form login (username/password)
+      document.addEventListener("DOMContentLoaded", () => {
+        const loginForm = document.getElementById("login-form");
+        if (loginForm) {
+          loginForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+            localStorage.setItem("user_logged_in", "true");
+            window.location.href = "welcome.html";
+          });
+        }
+
+        // Welcome page logic
+        const statusEl = document.getElementById("status");
+        if (statusEl) {
+          const token =
+            localStorage.getItem("google_token") ||
+            localStorage.getItem("user_logged_in");
+          if (token) {
+            statusEl.textContent = "You are logged in!";
+          } else {
+            statusEl.textContent = "Not logged in. Redirecting...";
+            setTimeout(() => {
+              window.location.href = "login.html";
+            }, 2000);
+          }
+        }
+
+        // Logout button handler
+        const logoutBtn = document.getElementById("logout");
+        if (logoutBtn) {
+          logoutBtn.addEventListener("click", () => {
+            localStorage.removeItem("google_token");
+            localStorage.removeItem("user_logged_in");
+            window.location.href = "login.html";
+          });
+        }
+      });
     </script>
   </body>
 </html>
